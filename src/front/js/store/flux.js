@@ -1,6 +1,9 @@
+import Swal from 'sweetalert2';
+
 const getState = ({ getStore, getActions, setStore }) => {
 	return {
 		store: {
+			token: null,
 			message: null,
 			demo: [
 				{
@@ -19,6 +22,80 @@ const getState = ({ getStore, getActions, setStore }) => {
 			// Use getActions to call a function within a fuction
 			exampleFunction: () => {
 				getActions().changeColor(0, "green");
+			},
+
+			syncTokenFromLocalStorage: () => {
+				const token = localStorage.getItem("token");
+				if (token && token != "" && token != "undefined") setStore({ token: token });
+			},						
+
+			login: async (email, password) => {
+				try {
+					const response = await fetch("https://supreme-dollop-wrvvqpjr7q5vcg4gv-3001.app.github.dev/api/login", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json"
+						},
+						body: JSON.stringify({
+							email,
+							password
+						})
+					});
+
+					if (!response.ok) {
+						throw await response.json();
+					}
+
+					const data = await response.json();
+					localStorage.setItem('token', data.token);
+					setStore({ token: data.token});
+					return true;
+				} catch (error) {
+					Swal.fire({
+						icon: "error",
+						title: "Oops...",
+						text: error.msg,
+					});
+					console.log(error);
+				}
+			},								
+
+			register: async (email, username, password) => {
+                try {
+                    const response = await fetch("https://supreme-dollop-wrvvqpjr7q5vcg4gv-3001.app.github.dev/api/register", {
+                        method: "POST",
+                        headers: {
+                            "content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            email,
+                            password,
+                            username
+                        })
+                    })
+                    if (!response.ok) {
+                        throw await response.json()
+                    }
+                    const data = await response.json()
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success!",
+                        text: data.msg,
+                    });
+                    return true
+                } catch (error) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Oops...",
+                        text: error.msg,
+                    });
+                    console.log(error)
+                }
+            },
+			
+			logout: () => {
+				localStorage.removeItem('token');
+				setStore({ token: null});
 			},
 
 			getMessage: async () => {
