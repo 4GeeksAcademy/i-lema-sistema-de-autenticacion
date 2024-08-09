@@ -99,17 +99,21 @@ const getState = ({ getStore, getActions, setStore }) => {
 			},
 
 			getMessage: async () => {
-				try{
-					// fetching data from the backend
-					const resp = await fetch(process.env.BACKEND_URL + "/api/hello")
-					const data = await resp.json()
-					setStore({ message: data.message })
-					// don't forget to return something, that is how the async resolves
+				const store = getStore();
+				try {
+					const resp = await fetch("https://supreme-dollop-wrvvqpjr7q5vcg4gv-3001.app.github.dev/api/hello", {
+						headers: {
+							Authorization: `Bearer ${store.token}`
+						}
+					});
+					const data = await resp.json();
+					setStore({ message: data.message });
 					return data;
-				}catch(error){
-					console.log("Error loading message from backend", error)
+				} catch (error) {
+					console.log("Error loading message from backend", error);
 				}
 			},
+
 			changeColor: (index, color) => {
 				//get the store
 				const store = getStore();

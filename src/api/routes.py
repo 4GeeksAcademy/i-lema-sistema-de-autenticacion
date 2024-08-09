@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, url_for, Blueprint
 from api.models import db, User
 from api.utils import generate_sitemap, APIException
 from flask_cors import CORS
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, jwt_required
 
 api = Blueprint('api', __name__)
 
@@ -13,11 +13,12 @@ api = Blueprint('api', __name__)
 CORS(api)
 
 
-@api.route('/hello', methods=['POST', 'GET'])
+@api.route('/hello', methods=['GET'])
+@jwt_required()
 def handle_hello():
 
     response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
+        "message": "User logged in"
     }
 
     return jsonify(response_body), 200
@@ -39,7 +40,7 @@ def login():
     user = User.query.filter_by(email=email).first()
     
     if user and user.check_password(password):
-        access_token = create_access_token(identity=user.id)
-        return jsonify({"token": access_token, "user": user.serialize()}), 200
+        access_token = create_access_token(identity=user.serialize())
+        return jsonify({"token": access_token}), 200
     else:
         return jsonify({"msg": "Wrong user or password"}), 401
